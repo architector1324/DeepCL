@@ -1,5 +1,8 @@
 all: main
 
+test: main.c deepcl.h
+	gcc -O0 main.c
+
 main: main.c deepcl.h
 	gcc -O2 main.c
 

@@ -41,7 +41,19 @@ void stub_mul(const dcl_matf* A, const dcl_matf* B, dcl_matf* result, DCL_TRANSP
             }
         }
     }else if(option == FIRST){
-       
+        size_t h = A->w;
+        size_t w = B->w;
+        size_t A_w = A->h;
+
+        for(size_t i = 0; i < h; i++){
+            for(size_t j = 0; j < w; j++){
+                float sum = 0;
+                for(size_t k = 0; k < A_w; k++)
+                    sum += A->data[k * h + i] * B->data[k * w + j];
+
+                result->data[i * w + j] = sum;
+            }
+        }
     }else if(option == SECOND){
         
     }else{

@@ -50,11 +50,11 @@ void dcl_queryf(const dcl_matf* in, dcl_matf* preout, dcl_matf* out, const dcl_l
         ops->map(in, layer->activation, out);
 }
 
-// void dcl_oerrorf(const dcl_matf* answer, const dcl_matf* out, dcl_matf* error, const dcl_matf_operations* ops){
-//     ops->sub(answer, out, error);
-// }
-// void dcl_errorf(const dcl_matf* next_error, dcl_matf* preout, dcl_matf* error, const dcl_layerf* next_layer, const dcl_layerf* layer, const dcl_matf_operations* ops){
-//     ops->mul(next_layer->core, next_error, error, FIRST);
-//     ops->map(preout, layer->derivative, preout);
-//     ops->had(error, preout, error);
-// }
+void dcl_oerrorf(const dcl_matf* answer, const dcl_matf* out, dcl_matf* error, const dcl_matf_operations* ops){
+    ops->sub(answer, out, error);
+}
+void dcl_errorf(const dcl_matf* next_error, dcl_matf* preout, dcl_matf* error, const dcl_layerf* next_layer, const dcl_layerf* layer, const dcl_matf_operations* ops){
+    ops->mul(next_layer->core, next_error, error, FIRST);
+    ops->map(preout, layer->derivative, preout);
+    ops->had(error, preout, error);
+}
