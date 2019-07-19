@@ -1,5 +1,43 @@
-#include "deepcl.h"
+#include "deepio.h"
 #include "matrix_stub.h"
+
+
+// matrix operations wrapper
+DIO_WRAP_MAP(wrapped_stub_map){
+    stub_map(A->data, f, result->data, result->h, result->w);
+}
+
+DIO_WRAP_OPERATION(wrapped_stub_add){
+    stub_add(A->data, B->data, result->data, result->h, result->w);
+}
+
+DIO_WRAP_OPERATION(wrapped_stub_sub){
+    stub_sub(A->data, B->data, result->data, result->h, result->w);
+}
+
+DIO_WRAP_OPERATION(wrapped_stub_mul){
+    if(option == NONE)
+        stub_mul(A->data, A->h, A->w, B->data, B->h, B->w, result->data, result->h, result->w, false);
+    else if(option == FIRST)
+        stub_mul(A->data, A->h, A->w, B->data, B->h, B->w, result->data, result->h, result->w, true);
+}
+
+DIO_WRAP_OPERATION(wrapped_stub_had){
+    stub_had(A->data, B->data, result->data, result->h, result->w);
+}
+
+void wrapped_printf(const dio_matf* A){
+    stub_printf(A->data, A->h, A->w);
+}
+
+dio_matf_operations stub_ops = {
+    .map = wrapped_stub_map,
+    .add = wrapped_stub_add,
+    .sub = wrapped_stub_sub,
+    .mul = wrapped_stub_mul,
+    .had = wrapped_stub_had
+};
+//
 
 
 float lrelu(float v){
@@ -9,110 +47,99 @@ float lrelu_div(float v){
     return v < 0 ? 0.01f : 1.0f;
 }
 
+
 int main(){
     // setup data
-    float _data[2] = {-3.0f, 2.0f};
-    dcl_matf data = {
+    dio_matf data = {
         .h = 2, .w = 1,
-        .data = _data
+        .data = (float[2]){-3.0f, 2.0f}
     };
 
-    float _answer[2] = {2.0f, -3.0f};
-    dcl_matf answer = {
+    dio_matf answer = {
         .h = 2, .w = 1,
-        .data = _answer
+        .data = (float[2]){2.0f, -3.0f}
     };
 
     // setup containers
-    float _il_out[2];
-    float _hl_preout[3], _hl_out[3], _hl_error[3];
-    float _ol_preout[2], _ol_out[2], _ol_error[2];
-
-    dcl_matf il_out = {
+    dio_matf il_out = {
         .h = 2, .w = 1,
-        .data = _il_out
+        .data = (float[2]){}
     }; 
 
-    dcl_matf hl_preout = {
+    dio_matf hl_preout = {
         .h = 3, .w = 1,
-        .data = _hl_preout
+        .data = (float[3]){}
     };
-
-    dcl_matf hl_out = {
+    dio_matf hl_out = {
         .h = 3, .w = 1,
-        .data = _hl_out
+        .data = (float[3]){}
     };
-
-    dcl_matf hl_error = {
+    dio_matf hl_error = {
         .h = 3, .w = 1,
-        .data = _hl_error
+        .data = (float[3]){}
     };
-
-    float _hl_core[] = {1, 2, 3, 4, 5, 6};
-    dcl_matf hl_core = {
+    dio_matf hl_core = {
         .h = 3, .w = 2,
-        .data = _hl_core
+        .data = (float[6]){1, 2, 3, 4, 5, 6}
     };
 
-    dcl_matf ol_preout = {
+    dio_matf ol_preout = {
         .h = 2, .w = 1,
-        .data = _ol_preout
+        .data = (float[2]){}
     };
-    dcl_matf ol_out = {
+    dio_matf ol_out = {
         .h = 2, .w = 1,
-        .data = _ol_out
+        .data = (float[2]){}
     };
-    dcl_matf ol_error = {
+    dio_matf ol_error = {
         .h = 2, .w = 1,
-        .data = _ol_error
+        .data = (float[2]){}
     };
-
-    float _ol_core[] = {6, 5, 4, 3, 2, 1};
-    dcl_matf ol_core = {
+    dio_matf ol_core = {
         .h = 2, .w = 3,
-        .data = _ol_core
+        .data = (float[6]){6, 5, 4, 3, 2, 1}
     };
 
     // setup net
-    dcl_layerf il = {
+    dio_layerf il = {
         .core = NULL,
         .activation = lrelu,
         .derivative = lrelu_div
     };
 
-    dcl_layerf hl = {
+    dio_layerf hl = {
         .core = &hl_core,
         .activation = lrelu,
         .derivative = lrelu_div
     };
 
-    dcl_layerf ol = {
+    dio_layerf ol = {
         .core = &ol_core,
         .activation = lrelu,
         .derivative = lrelu_div
     };
 
     // query
-    dcl_queryf(&data, NULL, &il_out, &il, &stub_ops);
-    dcl_queryf(&il_out, &hl_preout, &hl_out, &hl, &stub_ops);
-    dcl_queryf(&hl_out, &ol_preout, &ol_out, &ol, &stub_ops);
+    dio_queryf(&data, NULL, &il_out, &il, &stub_ops);
+    dio_queryf(&il_out, &hl_preout, &hl_out, &hl, &stub_ops);
+    dio_queryf(&hl_out, &ol_preout, &ol_out, &ol, &stub_ops);
 
     // error
-    dcl_oerrorf(&answer, &ol_out, &ol_error, &stub_ops);
-    dcl_errorf(&ol_error, &hl_preout, &hl_error, &ol, &hl, &stub_ops);
+    dio_out_errorf(&answer, &ol_out, &ol_error, &stub_ops);
+    dio_errorf(&ol_error, &hl_preout, &hl_error, &ol, &hl, &stub_ops);
 
     // output
     puts("Data:");
-    stub_printf(&data);
+    wrapped_printf(&data);
 
     puts("Output:");
-    stub_printf(&il_out);
-    stub_printf(&hl_out);
-    stub_printf(&ol_out);
+    wrapped_printf(&il_out);
+    wrapped_printf(&hl_out);
+    wrapped_printf(&ol_out);
 
     puts("Error:");
-    stub_printf(&hl_error);
-    stub_printf(&ol_error);
+    wrapped_printf(&hl_error);
+    wrapped_printf(&ol_error);
 
 
     return 0;

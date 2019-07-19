@@ -1,33 +1,35 @@
 #pragma once
 #include <stdio.h>
+#include <stdbool.h>
 
 
-void stub_map(const dcl_matf* A, float(*f)(float), dcl_matf* result){
-    size_t size = result->h * result->w;
+// Super-duper matrix library (just a stub)
 
-    for(size_t i = 0; i < size; i++)
-        result->data[i] = f(A->data[i]);
-}
-
-void stub_add(const dcl_matf* A, const dcl_matf* B, dcl_matf* result){
-    size_t size = result->h * result->w;
+void stub_map(const float* A, float(*f)(float), float* result, size_t result_h, size_t result_w){
+    size_t size = result_h * result_w;
 
     for(size_t i = 0; i < size; i++)
-        result->data[i] = A->data[i] + B->data[i];
+        result[i] = f(A[i]);
 }
 
-void stub_sub(const dcl_matf* A, const dcl_matf* B, dcl_matf* result){
-    size_t size = result->h * result->w;
+void stub_add(const float* A, const float* B, float* result, size_t result_h, size_t result_w){
+    size_t size = result_h * result_w;
 
     for(size_t i = 0; i < size; i++)
-        result->data[i] = A->data[i] - B->data[i];
+        result[i] = A[i] + B[i];
 }
 
-void stub_mul(const dcl_matf* A, const dcl_matf* B, dcl_matf* result, DCL_TRANSPOSE option){
-    if(option == NONE){
-        size_t h = A->h;
-        size_t w = B->w;
-        size_t A_w = A->w;
+void stub_sub(const float* A, const float* B, float* result, size_t result_h, size_t result_w){
+    size_t size = result_h * result_w;
+
+    for(size_t i = 0; i < size; i++)
+        result[i] = A[i] - B[i];
+}
+
+void stub_mul(const float* A, size_t A_h, size_t A_w,const float* B, size_t B_h, size_t B_w,float* result, size_t result_h, size_t result_w, bool transpose_first){
+    if(!transpose_first){
+        size_t h = A_h;
+        size_t w = B_w;
 
         for(size_t i = 0; i < h; i++){
             size_t A_offset = i * A_w;
@@ -35,56 +37,45 @@ void stub_mul(const dcl_matf* A, const dcl_matf* B, dcl_matf* result, DCL_TRANSP
             for(size_t j = 0; j < w; j++){
                 float sum = 0;
                 for(size_t k = 0; k < A_w; k++)
-                    sum += A->data[A_offset + k] * B->data[k * w + j];
+                    sum += A[A_offset + k] * B[k * w + j];
 
-                result->data[i * w + j] = sum;
+                result[i * w + j] = sum;
             }
         }
-    }else if(option == FIRST){
-        size_t h = A->w;
-        size_t w = B->w;
-        size_t A_w = A->h;
+    }else {
+        size_t h = A_w;
+        size_t w = B_w;
+        size_t _A_w = A_h;
 
         for(size_t i = 0; i < h; i++){
             for(size_t j = 0; j < w; j++){
                 float sum = 0;
-                for(size_t k = 0; k < A_w; k++)
-                    sum += A->data[k * h + i] * B->data[k * w + j];
+                for(size_t k = 0; k < _A_w; k++)
+                    sum += A[k * h + i] * B[k * w + j];
 
-                result->data[i * w + j] = sum;
+                result[i * w + j] = sum;
             }
         }
-    }else if(option == SECOND){
-        
-    }else{
-        
     }
 }
 
-void stub_had(const dcl_matf* A, const dcl_matf* B, dcl_matf* result){
-    size_t size = result->h * result->w;
+void stub_had(const float* A, const float* B, float* result, size_t result_h, size_t result_w){
+    size_t size = result_h * result_w;
 
     for(size_t i = 0; i < size; i++)
-        result->data[i] = A->data[i] * B->data[i];
+        result[i] = A[i] * B[i];
 }
 
-void stub_printf(const dcl_matf* A){
-    size_t h = A->h;
-    size_t w = A->w;
+void stub_printf(const float* A, size_t A_h, size_t A_w){
+    size_t h = A_h;
+    size_t w = A_w;
 
     for(size_t i = 0; i < h; i++){
         size_t offset = i * w;
         for(size_t j = 0; j < w; j++)
-            printf("%f ", A->data[offset + j]);
+            printf("%f ", A[offset + j]);
         puts("");
     }
     puts("");
 }
 
-dcl_matf_operations stub_ops = {
-    .map = stub_map,
-    .add = stub_add,
-    .sub = stub_sub,
-    .mul = stub_mul,
-    .had = stub_had
-};
