@@ -5,3 +5,6 @@ main: main.c deepcl.h
 
 debug: main.c deepcl.h
 	gcc -g main.c
+
+check: a.out
+	valgrind --leak-check=full ./a.out

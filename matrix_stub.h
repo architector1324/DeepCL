@@ -23,21 +23,29 @@ void stub_sub(const dcl_matf* A, const dcl_matf* B, dcl_matf* result){
         result->data[i] = A->data[i] - B->data[i];
 }
 
-void stub_mul(const dcl_matf* A, const dcl_matf* B, dcl_matf* result){
-    size_t h = A->h;
-    size_t w = B->w;
-    size_t A_w = A->w;
+void stub_mul(const dcl_matf* A, const dcl_matf* B, dcl_matf* result, DCL_TRANSPOSE option){
+    if(option == NONE){
+        size_t h = A->h;
+        size_t w = B->w;
+        size_t A_w = A->w;
 
-    for(size_t i = 0; i < h; i++){
-        size_t A_offset = i * A_w;
+        for(size_t i = 0; i < h; i++){
+            size_t A_offset = i * A_w;
 
-        for(size_t j = 0; j < w; j++){
-            float sum = 0;
-            for(size_t k = 0; k < A_w; k++)
-                sum += A->data[A_offset + k] * B->data[k * w + j];
+            for(size_t j = 0; j < w; j++){
+                float sum = 0;
+                for(size_t k = 0; k < A_w; k++)
+                    sum += A->data[A_offset + k] * B->data[k * w + j];
 
-            result->data[i * w + j] = sum;
+                result->data[i * w + j] = sum;
+            }
         }
+    }else if(option == FIRST){
+       
+    }else if(option == SECOND){
+        
+    }else{
+        
     }
 }
 
@@ -60,3 +68,11 @@ void stub_printf(const dcl_matf* A){
     }
     puts("");
 }
+
+dcl_matf_operations stub_ops = {
+    .map = stub_map,
+    .add = stub_add,
+    .sub = stub_sub,
+    .mul = stub_mul,
+    .had = stub_had
+};

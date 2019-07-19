@@ -10,14 +10,6 @@ float lrelu_div(float v){
 }
 
 int main(){
-    dcl_matf_operations ops = {
-        .map = stub_map,
-        .add = stub_add,
-        .sub = stub_sub,
-        .mul = stub_mul,
-        .had = stub_had
-    };
-
     // setup data
     float _data[] = {-3.0f, 2.0f};
     dcl_matf data = {
@@ -63,14 +55,13 @@ int main(){
     };
 
     // query
-    dcl_queryf(&data, NULL, &il_out, &il, &ops);
-    dcl_queryf(&il_out, &ol_preout, &ol_out, &ol, &ops);
+    dcl_queryf(&data, NULL, &il_out, &il, &stub_ops);
+    dcl_queryf(&il_out, &ol_preout, &ol_out, &ol, &stub_ops);
 
     // output
     stub_printf(&data);
     stub_printf(&il_out);
     stub_printf(&ol_out);
-
 
     return 0;
 }
