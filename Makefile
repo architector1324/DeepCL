@@ -1,13 +1,10 @@
-all: main
+all: basic
 
-test: main.c deepcl.h
-	gcc -O0 main.c
+basic: ./examples/basic/main.c deepcl.h
+	gcc -O2 -I ./ ./examples/basic/main.c -o ./bin/basic
 
-main: main.c deepcl.h
-	gcc -O2 main.c
+basic_debug: ./examples/basic/main.c deepcl.h
+	gcc -g  -I ./ ./examples/basic/main.c -o ./bin/basic
 
-debug: main.c deepcl.h
-	gcc -g main.c
-
-check: a.out
-	valgrind --leak-check=full ./a.out
+basic_check: a.out
+	valgrind --leak-check=full ./bin/basic
