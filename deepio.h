@@ -24,11 +24,12 @@ typedef struct dio_matf_operations{
     void(*sub)(const dio_matf* A, const dio_matf* B, dio_matf* result, DIO_TRANSPOSE option);
     void(*mul)(const dio_matf* A, const dio_matf* B, dio_matf* result, DIO_TRANSPOSE option);
     void(*had)(const dio_matf* A, const dio_matf* B, dio_matf* result, DIO_TRANSPOSE option);
+    float(*map_reduce)(const dio_matf* A, float(*f)(float));
 } dio_matf_operations;
 
 #define DIO_WRAP_MAP(name) void (name)(const dio_matf* A, float(*f)(float), dio_matf* result, DIO_TRANSPOSE option)
 #define DIO_WRAP_OPERATION(name) void (name)(const dio_matf* A, const dio_matf* B, dio_matf* result, DIO_TRANSPOSE option)
-
+#define DIO_WRAP_MAP_REDUCE(name) float (name)(const dio_matf* A, float(*f)(float))
 
 //////////////////////////////////
 //             DEEP
@@ -59,4 +60,8 @@ void dio_errorf(const dio_matf* next_error, dio_matf* preout, dio_matf* error, c
     ops->mul(next_layer->core, next_error, error, FIRST);
     ops->map(preout, layer->derivative, preout, NONE);
     ops->had(error, preout, error, NONE);
+}
+
+float dio_costf(const dio_matf* error, float(*cost)(float), const dio_matf_operations* ops){
+    return ops->map_reduce(error, cost) / (error->h * error->w);
 }

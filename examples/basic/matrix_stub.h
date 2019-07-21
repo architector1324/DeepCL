@@ -66,6 +66,15 @@ void stub_had(const float* A, const float* B, float* result, size_t result_h, si
         result[i] = A[i] * B[i];
 }
 
+float stub_map_reduce(const float* A, size_t A_h, size_t A_w, float(*f)(float)){
+    float result = 0.0f;
+    size_t size = A_h * A_w;
+
+    for(size_t i = 0; i < size; i++) result += f(A[i]);
+
+    return result;
+}
+
 void stub_printf(const float* A, size_t A_h, size_t A_w){
     size_t h = A_h;
     size_t w = A_w;

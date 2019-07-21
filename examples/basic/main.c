@@ -26,6 +26,10 @@ DIO_WRAP_OPERATION(wrapped_stub_had){
     stub_had(A->data, B->data, result->data, result->h, result->w);
 }
 
+DIO_WRAP_MAP_REDUCE(wrapped_stub_map_reduce){
+    stub_map_reduce(A->data, A->h, A->w, f);
+}
+
 void wrapped_printf(const dio_matf* A){
     stub_printf(A->data, A->h, A->w);
 }
@@ -35,7 +39,8 @@ dio_matf_operations stub_ops = {
     .add = wrapped_stub_add,
     .sub = wrapped_stub_sub,
     .mul = wrapped_stub_mul,
-    .had = wrapped_stub_had
+    .had = wrapped_stub_had,
+    .map_reduce = wrapped_stub_map_reduce
 };
 //
 
@@ -45,6 +50,10 @@ float lrelu(float v){
 }
 float lrelu_div(float v){
     return v < 0 ? 0.01f : 1.0f;
+}
+
+float mse(float v){
+    return v * v;
 }
 
 
@@ -128,6 +137,8 @@ int main(){
     dio_out_errorf(&answer, &ol_out, &ol_error, &stub_ops);
     dio_errorf(&ol_error, &hl_preout, &hl_error, &ol, &hl, &stub_ops);
 
+    float error = dio_costf(&ol_error, mse, &stub_ops);
+
     // output
     puts("Data:");
     wrapped_printf(&data);
@@ -141,6 +152,7 @@ int main(){
     wrapped_printf(&hl_error);
     wrapped_printf(&ol_error);
 
+    printf("Total error: %f\n", error);
 
     return 0;
 }
