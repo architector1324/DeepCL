@@ -23,12 +23,15 @@ typedef struct dio_matf_operations{
     void(*add)(const dio_matf* A, const dio_matf* B, dio_matf* result, DIO_TRANSPOSE option);
     void(*sub)(const dio_matf* A, const dio_matf* B, dio_matf* result, DIO_TRANSPOSE option);
     void(*mul)(const dio_matf* A, const dio_matf* B, dio_matf* result, DIO_TRANSPOSE option);
+    void(*mul_scalar)(const dio_matf* A, float value, dio_matf* result, DIO_TRANSPOSE option);
     void(*had)(const dio_matf* A, const dio_matf* B, dio_matf* result, DIO_TRANSPOSE option);
     float(*map_reduce)(const dio_matf* A, float(*f)(float));
 } dio_matf_operations;
 
-#define DIO_WRAP_MAP(name) void (name)(const dio_matf* A, float(*f)(float), dio_matf* result, DIO_TRANSPOSE option)
+
 #define DIO_WRAP_OPERATION(name) void (name)(const dio_matf* A, const dio_matf* B, dio_matf* result, DIO_TRANSPOSE option)
+#define DIO_WRAP_MAP(name) void (name)(const dio_matf* A, float(*f)(float), dio_matf* result, DIO_TRANSPOSE option)
+#define DIO_WRAP_MUL_SCALAR(name) void (name)(const dio_matf* A, float value, dio_matf* result, DIO_TRANSPOSE option)
 #define DIO_WRAP_MAP_REDUCE(name) float (name)(const dio_matf* A, float(*f)(float))
 
 //////////////////////////////////
@@ -64,4 +67,19 @@ void dio_errorf(const dio_matf* next_error, dio_matf* preout, dio_matf* error, c
 
 float dio_costf(const dio_matf* error, float(*cost)(float), const dio_matf_operations* ops){
     return ops->map_reduce(error, cost) / (error->h * error->w);
+}
+
+
+void dio_gradf(dio_matf* error, const dio_matf* prev_out, dio_matf* grad, float(*div_cost)(float), const dio_matf_operations* ops){
+    float count = -1.0f / (error->h * error->w);
+
+    ops->map(error, div_cost, error, NONE);
+    ops->mul(error, prev_out, grad, SECOND);
+    ops->mul_scalar(grad, count, grad, NONE);
+}
+
+// basic gradient discent
+void dio_basic_gd(dio_matf* grad, const dio_layerf* layer, float learning_rate, const dio_matf_operations* ops){
+    ops->mul_scalar(grad, learning_rate, grad, NONE);
+    ops->sub(layer->core, grad, layer->core, NONE);
 }
