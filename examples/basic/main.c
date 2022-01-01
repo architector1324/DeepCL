@@ -28,11 +28,11 @@ DIO_WRAP_OPERATION(wrapped_stub_sub) {
 }
 
 DIO_WRAP_OPERATION(wrapped_stub_mul) {
-    if(option == NONE)
+    if(option == DIO_TRANSPOSE_NONE)
         stub_mul(&A->data->f, A->h, A->w, &B->data->f, B->h, B->w, &result->data->f, result->h, result->w, false, false);
-    else if(option == FIRST)
+    else if(option == DIO_TRANSPOSE_FIRST)
         stub_mul(&A->data->f, A->h, A->w, &B->data->f, B->h, B->w, &result->data->f, result->h, result->w, true, false);
-    else if (option == SECOND)
+    else if (option == DIO_TRANSPOSE_SECOND)
         stub_mul(&A->data->f, A->h, A->w, &B->data->f, B->h, B->w, &result->data->f, result->h, result->w, false, true);
 }
 
@@ -142,19 +142,19 @@ int main() {
     };
 
     // setup net
-    dio_layerf il = {
+    dio_layer_t il = {
         .core = NULL,
         .activation = lrelu,
         .derivative = lrelu_div
     };
 
-    dio_layerf hl = {
+    dio_layer_t hl = {
         .core = &hl_core,
         .activation = lrelu,
         .derivative = lrelu_div
     };
 
-    dio_layerf ol = {
+    dio_layer_t ol = {
         .core = &ol_core,
         .activation = lrelu,
         .derivative = lrelu_div
