@@ -1,6 +1,7 @@
 #pragma once
 #include <stdio.h>
 #include <stdbool.h>
+#include <stdlib.h>
 
 
 // Super-duper matrix library (just a stub)
@@ -107,3 +108,7 @@ void stub_printf(const float* A, size_t A_h, size_t A_w){
     puts("");
 }
 
+void stub_rnd(float from, float to, float* result, size_t result_h, size_t result_w) {
+    size_t size = result_h * result_w;
+    for(size_t i = 0; i < size; i++) result[i] = from + ((float)rand() / RAND_MAX) * (to - from);
+}

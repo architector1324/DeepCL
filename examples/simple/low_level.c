@@ -45,7 +45,9 @@ DIO_WRAP_MUL_SCALAR(wrapped_stub_mul_scalar) {
 }
 
 DIO_WRAP_MAP_REDUCE(wrapped_stub_map_reduce) {
-    stub_map_reduce(&A->data->f, A->h, A->w, f);
+    dio_data_t out;
+    out.f = stub_map_reduce(&A->data->f, A->h, A->w, f);
+    return out;
 }
 
 void wrapped_printf(const dio_mat_t* A) {
@@ -93,6 +95,38 @@ int main() {
         .data = (float[2]) {2.0f, -3.0f}
     };
 
+    // setup net
+    dio_layer_t il = {
+        .core = NULL,
+        .neuronsCount = 2,
+        .activation = lrelu,
+        .derivative = lrelu_div
+    };
+
+    dio_mat_t hl_core = {
+        .h = 3, .w = 2,
+        .data = (float[6]) {1, 2, 3, 4, 5, 6}
+    };
+
+    dio_layer_t hl = {
+        .core = &hl_core,
+        .neuronsCount = 3,
+        .activation = lrelu,
+        .derivative = lrelu_div
+    };
+
+    dio_mat_t ol_core = {
+        .h = 2, .w = 3,
+        .data = (float[6]) {6, 5, 4, 3, 2, 1}
+    };
+
+    dio_layer_t ol = {
+        .core = &ol_core,
+        .neuronsCount = 2,
+        .activation = lrelu,
+        .derivative = lrelu_div
+    };
+
     // setup containers
     dio_mat_t il_out = {
         .h = 2, .w = 1,
@@ -115,10 +149,6 @@ int main() {
         .h = 3, .w = 2,
         .data = (float[6]) {}
     };
-    dio_mat_t hl_core = {
-        .h = 3, .w = 2,
-        .data = (float[6]) {1, 2, 3, 4, 5, 6}
-    };
 
     dio_mat_t ol_preout = {
         .h = 2, .w = 1,
@@ -136,31 +166,12 @@ int main() {
         .h = 2, .w = 3,
         .data = (float[6]) {}
     };
-    dio_mat_t ol_core = {
-        .h = 2, .w = 3,
-        .data = (float[6]) {6, 5, 4, 3, 2, 1}
-    };
 
-    // setup net
-    dio_layer_t il = {
-        .core = NULL,
-        .activation = lrelu,
-        .derivative = lrelu_div
-    };
+    // fit
+    float error = 1.0f;
+    float eLim = 0.0005f;
 
-    dio_layer_t hl = {
-        .core = &hl_core,
-        .activation = lrelu,
-        .derivative = lrelu_div
-    };
-
-    dio_layer_t ol = {
-        .core = &ol_core,
-        .activation = lrelu,
-        .derivative = lrelu_div
-    };
-
-    for(size_t i = 0; i < 200; i++) {
+    while(error > eLim) {
         // query
         dio_query(&data, NULL, &il_out, &il, &stub_ops);
         dio_query(&il_out, &hl_preout, &hl_out, &hl, &stub_ops);
@@ -170,7 +181,7 @@ int main() {
         dio_out_error(&answer, &ol_out, &ol_error, &stub_ops);
         dio_error(&ol_error, &hl_preout, &hl_error, &ol, &hl, &stub_ops);
 
-        float error = dio_cost(&ol_error, mse, &stub_ops).f;
+        error = dio_cost(&ol_error, mse, &stub_ops).f;
 
         // grad
         dio_grad(&hl_error, &il_out, &hl_grad, mse_div, &stub_ops);
@@ -180,8 +191,7 @@ int main() {
         dio_basic_gd(&hl_grad, &hl, (dio_data_t)0.1f, &stub_ops);
         dio_basic_gd(&ol_grad, &ol, (dio_data_t)0.1f, &stub_ops);
 
-        if(i % 10 == 0)
-            printf("Total error: %f\n", error);
+        printf("Total error: %f\n", error);
     }
 
     // output
